@@ -39,5 +39,13 @@ BG_COLOR=$(printf '#%06X\n' $((RANDOM * RANDOM % 16777215)))
 # ── Replace placeholders ──────────────────────────────────────────────────────
 sed -i "s|%%AWS_REGION%%|${AWS_REGION}|g"    "$DEPLOY_DIR/index.php"
 sed -i "s|%%BG_COLOR%%|${BG_COLOR}|g"        "$DEPLOY_DIR/index.php"
+sed -i "s|%%AWS_REGION%%|${AWS_REGION}|g"    "$DEPLOY_DIR/uploads-check.php"
 sed -i "s|const DB_HOST = '';|const DB_HOST = '${DB_HOST}';|g" "$DEPLOY_DIR/config.php"
 sed -i "s|const OS_URL = '';|const OS_URL = '${OS_URL}';|g"    "$DEPLOY_DIR/config.php"
+
+# ── Seed uploads directory (EFS is shared — only copy if file absent) ─────────
+SAMPLE="$DEPLOY_DIR/assets/sample.svg"
+if [ -f "$SAMPLE" ] && [ ! -f "$DEPLOY_DIR/uploads/sample.svg" ]; then
+  cp "$SAMPLE" "$DEPLOY_DIR/uploads/sample.svg"
+  chown www-data:www-data "$DEPLOY_DIR/uploads/sample.svg"
+fi
